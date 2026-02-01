@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Be my Valentine?</title>
+  <style>
+    :root{
+      --bg1:#ff7aa5;
+      --bg2:#ffd1c4;
+      --bg3:#ffc2dd;
+      --card:#ffffffcc;
+      --text:#1f1f1f;
+      --mx:50vw;
+      --my:50vh;
+      --spot:240px;
+    }
+
+    *{ box-sizing:border-box; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      overflow:hidden;
+      background: linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3), var(--bg1));
+      background-size: 420% 420%;
+      animation: bgmove 9s ease-in-out infinite;
+    }
+    @keyframes bgmove{
+      0%{ background-position: 0% 40%; }
+      50%{ background-position: 100% 60%; }
+      100%{ background-position: 0% 40%; }
+    }
+
+    #bg{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:0;
+      overflow:hidden;
+    }
+
+    #bg .spot{
+      position:absolute; inset:0;
+      background: rgba(18,18,24,0.18);
+      -webkit-mask-image: radial-gradient(circle var(--spot) at var(--mx) var(--my), transparent 0, transparent 45%, black 70%);
+      mask-image: radial-gradient(circle var(--spot) at var(--mx) var(--my), transparent 0, transparent 45%, black 70%);
+    }
+
+    #bg .glow{
+      position:absolute; inset:-25%;
+      background:
+        radial-gradient(circle at var(--mx) var(--my),
+          rgba(255,255,255,0.55),
+          rgba(255,255,255,0.22) 22%,
+          rgba(255,255,255,0) 55%),
+        radial-gradient(circle at calc(var(--mx) + 220px) calc(var(--my) - 160px),
+          rgba(255,45,85,0.22),
+          rgba(255,45,85,0) 58%),
+        radial-gradient(circle at calc(var(--mx) - 260px) calc(var(--my) + 180px),
+          rgba(255,255,255,0.18),
+          rgba(255,255,255,0) 60%);
+      filter: blur(18px);
+      opacity:0.9;
+      mix-blend-mode: soft-light;
+    }
+
+    #bg .grain{
+      position:absolute; inset:0;
+      opacity:0.10;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.08), rgba(255,255,255,0.08) 1px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 4px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 1px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 5px);
+      filter: blur(0.4px);
+      mix-blend-mode: overlay;
+    }
+
+    .bg-heart{
+      position:absolute;
+      top:110%;
+      opacity:0.42;
+      animation: floatUp linear forwards;
+      filter: drop-shadow(0 12px 22px rgba(0,0,0,0.10));
+      will-change: transform, opacity;
+    }
+    @keyframes floatUp{
+      0%{ transform: translateY(0) translateX(0) rotate(0deg); opacity:0; }
+      10%{ opacity:0.42; }
+      100%{ transform: translateY(-165vh) translateX(var(--drift)) rotate(360deg); opacity:0; }
+    }
+
+    .blob{
+      position:absolute;
+      border-radius:999px;
+      opacity:0.22;
+      filter: blur(18px);
+      animation: blobmove ease-in-out infinite;
+      will-change: transform, opacity;
+      mix-blend-mode: soft-light;
+    }
+    @keyframes blobmove{
+      0%{ transform: translate3d(0,0,0) scale(1); opacity:0.16; }
+      50%{ transform: translate3d(var(--bx), var(--by), 0) scale(1.05); opacity:0.28; }
+      100%{ transform: translate3d(0,0,0) scale(1); opacity:0.16; }
+    }
+
+    .card{
+      width:min(680px,92vw);
+      background:var(--card);
+      backdrop-filter: blur(12px);
+      border:1px solid rgba(255,255,255,0.45);
+      border-radius:28px;
+      padding:30px;
+      box-shadow:0 22px 80px rgba(0,0,0,0.20);
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+    h1{ margin:0 0 10px; font-size:36px; color:var(--text); letter-spacing:-0.02em; }
+    p{ margin:0 0 14px; color:#333; opacity:.9; }
+
+    .gif{
+      width:min(460px,88vw);
+      border-radius:18px;
+      display:block;
+      margin:12px auto 18px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.12);
+    }
+
+    .playfield{
+      position:relative;
+      width:min(580px,92vw);
+      height:128px;
+      margin:0 auto;
+    }
+
+    button{
+      border:0; border-radius:999px;
+      font-weight:900;
+      user-select:none;
+      box-shadow:0 10px 25px rgba(0,0,0,0.16);
+      transition: transform .12s ease, left .12s ease, top .12s ease, padding .12s ease, font-size .12s ease;
+    }
+    button:active{ transform: scale(.98); }
+
+    #yes{
+      position:absolute;
+      background:#ff2d55;
+      color:white;
+      font-size:16px;
+      padding:14px 22px;
+      cursor:pointer;
+      z-index:2;
+    }
+
+    #no{
+      position:absolute;
+      background:#111827;
+      color:white;
+      font-size:16px;
+      padding:14px 22px;
+      opacity:.92;
+      z-index:3;
+      cursor:pointer;
+      pointer-events:auto;
+    }
+    #no.dodge{
+      font-size:12px;
+      padding:7px 11px;
+      transform: scale(0.88);
+      cursor:not-allowed;
+      pointer-events:none;
+    }
+
+    #hint{
+      margin:34px auto 0;
+      width:min(580px,92vw);
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.78);
+      box-shadow:0 10px 25px rgba(0,0,0,0.08);
+      font-size:13px;
+      color:#1c1c1c;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:8px;
+      opacity:0;
+      transform: translateY(10px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    #hint.on{
+      opacity:.98;
+      transform: translateY(0);
+    }
+
+    .hidden{ display:none; }
+    .big{ font-size:40px; margin:6px 0 12px; letter-spacing:-0.02em; }
+    .sub{ opacity:.85; margin:0 0 12px; }
+
+    #gameWrap{
+      width:min(520px,92vw);
+      margin:8px auto 0;
+      text-align:left;
+    }
+    #gameHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin:10px 0 10px;
+      font-weight:800;
+      color:#1f1f1f;
+      opacity:.9;
+    }
+    #gameArea{
+      position:relative;
+      width:100%;
+      height:170px;
+      border-radius:18px;
+      background: rgba(255,255,255,0.55);
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow:0 12px 26px rgba(0,0,0,0.06);
+      overflow:hidden;
+    }
+    .tapheart{
+      position:absolute;
+      width:44px;
+      height:44px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.8);
+      display:grid;
+      place-items:center;
+      font-size:20px;
+      cursor:pointer;
+      box-shadow:0 12px 22px rgba(0,0,0,0.10);
+      animation: bob 1.2s ease-in-out infinite;
+      user-select:none;
+    }
+    @keyframes bob{
+      0%{ transform: translateY(0) scale(1); }
+      50%{ transform: translateY(-8px) scale(1.03); }
+      100%{ transform: translateY(0) scale(1); }
+    }
+
+    #secret{
+      margin:12px 0 0;
+      padding:12px 14px;
+      border-radius:18px;
+      background: rgba(255,255,255,0.78);
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow:0 12px 26px rgba(0,0,0,0.06);
+      display:none;
+    }
+    #secretTitle{
+      font-weight:900;
+      margin:0 0 6px;
+    }
+    #secretText{
+      margin:0;
+      opacity:.9;
+    }
+
+    .heart{
+      position:absolute;
+      left:0; top:-20px;
+      font-size:18px;
+      animation: fall linear forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.13));
+      pointer-events:none;
+      z-index:10;
+    }
+    @keyframes fall{
+      to{ transform: translateY(calc(100vh + 40px)) rotate(360deg); opacity:0.95; }
+    }
+
+    #fx{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:50;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      body{ animation:none; }
+      #bg .spot, #bg .glow, #bg .grain{ display:none; }
+      .bg-heart{ display:none; }
+      .blob{ display:none; }
+      #hint{ transition:none; }
+      .tapheart{ animation:none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="bg">
+    <div class="spot"></div>
+    <div class="glow"></div>
+    <div class="grain"></div>
+  </div>
+
+  <canvas id="fx"></canvas>
+
+  <div class="card" id="card">
+    <div id="ask">
+      <h1>Will you be my Valentine?</h1>
+      <p>Choose wisely.</p>
+
+      <img class="gif" src="ASK.gif" alt="" />
+
+      <div class="playfield" id="field">
+        <button id="yes" type="button">Yes</button>
+        <button id="no" type="button" aria-disabled="true">No</button>
+      </div>
+
+      <div id="hint"><span>No is temporarily out of service - try Yes.</span><span>🔒💘</span></div>
+    </div>
+
+    <div id="yay" class="hidden">
+      <div class="big">SHE SAID YES 💘</div>
+      <p class="sub">Ok. We’re locked in.</p>
+
+      <img class="gif" src="YAY.gif" alt="" />
+
+      <div id="gameWrap">
+        <div id="gameHeader">
+          <div>Mini game: tap 5 hearts</div>
+          <div id="score">0/5</div>
+        </div>
+        <div id="gameArea"></div>
+        <div id="secret">
+          <div id="secretTitle">Unlocked 💌</div>
+          <p id="secretText">You + me. That’s the whole plan. 🔒💘</p>
+        </div>
+      </div>
+
+      <div class="playfield" style="height:auto;margin-top:16px;">
+        <button id="restart" type="button" style="background:#111827;color:white;font-size:16px;padding:14px 22px;cursor:pointer;">Replay</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const bg = document.getElementById("bg");
+    const field = document.getElementById("field");
+    const yes = document.getElementById("yes");
+    const no = document.getElementById("no");
+    const hint = document.getElementById("hint");
+    const ask = document.getElementById("ask");
+    const yay = document.getElementById("yay");
+    const restart = document.getElementById("restart");
+
+    const fx = document.getElementById("fx");
+    const fxCtx = fx.getContext("2d", { alpha: true });
+
+    const gameArea = document.getElementById("gameArea");
+    const scoreEl = document.getElementById("score");
+    const secret = document.getElementById("secret");
+
+    function rand(min, max){ return Math.random() * (max - min) + min; }
+    function clamp(v, min, max){ return Math.min(max, Math.max(min, v)); }
+
+    function sizeFx(){
+      fx.width = window.innerWidth * devicePixelRatio;
+      fx.height = window.innerHeight * devicePixelRatio;
+      fx.style.width = window.innerWidth + "px";
+      fx.style.height = window.innerHeight + "px";
+      fxCtx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    sizeFx();
+    window.addEventListener("resize", sizeFx);
+
+    function setGlow(x, y){
+      document.documentElement.style.setProperty("--mx", x + "px");
+      document.documentElement.style.setProperty("--my", y + "px");
+    }
+
+    function spawnBgHeart(){
+      const h = document.createElement("div");
+      h.className = "bg-heart";
+      h.textContent = Math.random() < 0.55 ? "💖" : "💘";
+      h.style.left = rand(-5, 105) + "vw";
+      h.style.fontSize = rand(18, 36) + "px";
+      h.style.animationDuration = rand(8.5, 14.5) + "s";
+      h.style.setProperty("--drift", rand(-220, 220) + "px");
+      bg.appendChild(h);
+      setTimeout(()=>h.remove(), 18000);
+    }
+
+    function spawnBlob(){
+      const b = document.createElement("div");
+      b.className = "blob";
+      const size = rand(220, 420);
+      b.style.width = size + "px";
+      b.style.height = size + "px";
+      b.style.left = rand(-10, 110) + "vw";
+      b.style.top = rand(-10, 110) + "vh";
+      b.style.setProperty("--bx", rand(-220, 220) + "px");
+      b.style.setProperty("--by", rand(-220, 220) + "px");
+      b.style.animationDuration = rand(8, 14) + "s";
+      b.style.background = Math.random() < 0.5 ? "rgba(255,255,255,0.30)" : "rgba(255,45,85,0.20)";
+      bg.appendChild(b);
+      setTimeout(()=>b.remove(), 22000);
+    }
+
+    setInterval(spawnBgHeart, 320);
+    for(let i=0;i<18;i++) setTimeout(spawnBgHeart, i*100);
+
+    for(let i=0;i<9;i++) setTimeout(spawnBlob, i*240);
+    setInterval(spawnBlob, 1100);
+
+    let hintLatched = false;
+    function latchHint(){
+      if(hintLatched) return;
+      hint.classList.add("on");
+      hintLatched = true;
+    }
+
+    function initButtons(){
+      const f = field.getBoundingClientRect();
+      const yW = yes.getBoundingClientRect().width;
+      const yH = yes.getBoundingClientRect().height;
+
+      const nW = no.getBoundingClientRect().width;
+      const nH = no.getBoundingClientRect().height;
+
+      const topY = clamp(f.height * 0.52 - yH/2, 10, f.height - yH - 10);
+      const topN = clamp(f.height * 0.52 - nH/2, 10, f.height - nH - 10);
+
+      const yLeft = clamp(f.width * 0.42 - yW/2, 14, f.width - yW - 14);
+      const nLeft = clamp(f.width * 0.58 - nW/2, 14, f.width - nW - 14);
+
+      yes.style.left = yLeft + "px";
+      yes.style.top = topY + "px";
+
+      no.style.left = nLeft + "px";
+      no.style.top = topN + "px";
+    }
+
+    function rectFrom(el){
+      const f = field.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      return {
+        x: parseFloat(el.style.left || "0"),
+        y: parseFloat(el.style.top || "0"),
+        w: r.width,
+        h: r.height,
+        fx: f.left,
+        fy: f.top,
+        fw: f.width,
+        fh: f.height
+      };
+    }
+
+    function overlap(a, b, pad){
+      const ax1 = a.x - pad, ay1 = a.y - pad, ax2 = a.x + a.w + pad, ay2 = a.y + a.h + pad;
+      const bx1 = b.x - pad, by1 = b.y - pad, bx2 = b.x + b.w + pad, by2 = b.y + b.h + pad;
+      return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
+    }
+
+    let dodgeEnabled = false;
+    let lastMove = 0;
+
+    function dodge(px, py){
+      if(!dodgeEnabled) return;
+      if(ask.classList.contains("hidden")) return;
+
+      const now = performance.now();
+      if(now - lastMove < 55) return;
+      lastMove = now;
+
+      const n = rectFrom(no);
+      const y = rectFrom(yes);
+
+      const rx = px - n.fx;
+      const ry = py - n.fy;
+
+      const cx = n.x + n.w/2;
+      const cy = n.y + n.h/2;
+
+      let dx = cx - rx;
+      let dy = cy - ry;
+      let len = Math.hypot(dx, dy);
+      if(len < 1){ dx = rand(-1,1); dy = rand(-1,1); len = Math.hypot(dx, dy); }
+      dx /= len; dy /= len;
+
+      const a = Math.atan2(dy, dx) + rand(-0.9, 0.9);
+      const step = 260;
+
+      let nx = clamp(n.x + Math.cos(a)*step, 12, n.fw - n.w - 12);
+      let ny = clamp(n.y + Math.sin(a)*step, 12, n.fh - n.h - 12);
+
+      for(let i=0;i<10;i++){
+        const candidate = { x:nx, y:ny, w:n.w, h:n.h };
+        if(!overlap(candidate, y, 22)) break;
+        nx = clamp(rand(12, n.fw - n.w - 12), 12, n.fw - n.w - 12);
+        ny = clamp(rand(12, n.fh - n.h - 12), 12, n.fh - n.h - 12);
+      }
+
+      no.style.left = nx + "px";
+      no.style.top = ny + "px";
+    }
+
+    function proximity(px, py){
+      if(!dodgeEnabled) return;
+      if(ask.classList.contains("hidden")) return;
+
+      const f = field.getBoundingClientRect();
+      const r = no.getBoundingClientRect();
+      const cx = f.left + (parseFloat(no.style.left || "0")) + r.width/2;
+      const cy = f.top + (parseFloat(no.style.top || "0")) + r.height/2;
+
+      const d = Math.hypot(px - cx, py - cy);
+      if(d < 330) dodge(px, py);
+    }
+
+    function armNo(e){
+      if(dodgeEnabled) return;
+      dodgeEnabled = true;
+      no.classList.add("dodge");
+      latchHint();
+      requestAnimationFrame(() => {
+        const f = field.getBoundingClientRect();
+        const r = no.getBoundingClientRect();
+        const x = clamp(parseFloat(no.style.left || "0"), 12, f.width - r.width - 12);
+        const y = clamp(parseFloat(no.style.top || "0"), 12, f.height - r.height - 12);
+        no.style.left = x + "px";
+        no.style.top = y + "px";
+        const px = e && e.clientX ? e.clientX : f.left + f.width * 0.6;
+        const py = e && e.clientY ? e.clientY : f.top + f.height * 0.5;
+        dodge(px, py);
+      });
+    }
+
+    function spawnYesHearts(count){
+      for(let i=0;i<count;i++){
+        const h = document.createElement("div");
+        h.className = "heart";
+        h.textContent = Math.random() < 0.5 ? "💖" : "💘";
+        h.style.left = rand(0, 100) + "vw";
+        h.style.animationDuration = rand(1.6, 3.2) + "s";
+        h.style.fontSize = rand(14, 28) + "px";
+        h.style.opacity = rand(0.75, 1);
+        document.body.appendChild(h);
+        setTimeout(()=>h.remove(), 4200);
+      }
+    }
+
+    function confettiBurst(){
+      const colors = ["#ff2d55","#ffd1dc","#ffffff","#111827","#ff7aa5"];
+      const parts = [];
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const originX = w * 0.5;
+      const originY = h * 0.18;
+
+      for(let i=0;i<160;i++){
+        parts.push({
+          x: originX,
+          y: originY,
+          vx: rand(-6.5, 6.5),
+          vy: rand(-12, -5),
+          g: rand(0.22, 0.35),
+          r: rand(2, 4),
+          a: rand(0, Math.PI*2),
+          va: rand(-0.25, 0.25),
+          c: colors[(Math.random()*colors.length)|0],
+          o: 1
+        });
+      }
+
+      let t0 = performance.now();
+
+      function frame(t){
+        const dt = Math.min(33, t - t0);
+        t0 = t;
+
+        fxCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
+
+        for(const p of parts){
+          p.vy += p.g * (dt/16);
+          p.x += p.vx * (dt/16);
+          p.y += p.vy * (dt/16);
+          p.a += p.va * (dt/16);
+          p.o -= 0.0045 * (dt/16);
+
+          fxCtx.globalAlpha = Math.max(0, p.o);
+          fxCtx.fillStyle = p.c;
+          fxCtx.save();
+          fxCtx.translate(p.x, p.y);
+          fxCtx.rotate(p.a);
+          fxCtx.fillRect(-p.r, -p.r, p.r*2.2, p.r*2.2);
+          fxCtx.restore();
+        }
+
+        fxCtx.globalAlpha = 1;
+
+        if(parts[0].o > 0){
+          requestAnimationFrame(frame);
+        }else{
+          fxCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    let target = 5;
+    let caught = 0;
+    let gameOn = false;
+
+    function updateScore(){
+      scoreEl.textContent = caught + "/" + target;
+    }
+
+    function spawnTapHeart(){
+      const area = gameArea.getBoundingClientRect();
+      const btn = document.createElement("div");
+      btn.className = "tapheart";
+      btn.textContent = Math.random() < 0.5 ? "💖" : "💘";
+
+      const size = 44;
+      const x = rand(10, Math.max(10, area.width - size - 10));
+      const y = rand(12, Math.max(12, area.height - size - 12));
+
+      btn.style.left = x + "px";
+      btn.style.top = y + "px";
+      btn.style.animationDuration = rand(0.95, 1.35) + "s";
+
+      btn.addEventListener("pointerdown", () => {
+        if(!gameOn) return;
+        btn.remove();
+        caught++;
+        updateScore();
+        if(caught >= target){
+          gameOn = false;
+          secret.style.display = "block";
+        }else{
+          spawnTapHeart();
+        }
+      });
+
+      gameArea.appendChild(btn);
+    }
+
+    function startMiniGame(){
+      caught = 0;
+      updateScore();
+      secret.style.display = "none";
+      gameArea.innerHTML = "";
+      gameOn = true;
+      for(let i=0;i<2;i++) spawnTapHeart();
+    }
+
+    document.addEventListener("pointermove", (e) => {
+      setGlow(e.clientX, e.clientY);
+      proximity(e.clientX, e.clientY);
+    }, { passive:true });
+
+    no.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      armNo(e);
+    }, { passive:false });
+
+    no.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      armNo(e);
+    });
+
+    yes.addEventListener("click", () => {
+      ask.classList.add("hidden");
+      yay.classList.remove("hidden");
+      spawnYesHearts(70);
+      confettiBurst();
+      startMiniGame();
+      let burst = 0;
+      const t = setInterval(()=>{
+        spawnYesHearts(18);
+        burst++;
+        if(burst >= 6) clearInterval(t);
+      }, 220);
+    });
+
+    restart.addEventListener("click", () => {
+      yay.classList.add("hidden");
+      ask.classList.remove("hidden");
+      hintLatched = false;
+      hint.classList.remove("on");
+      dodgeEnabled = false;
+      no.classList.remove("dodge");
+      initButtons();
+    });
+
+    window.addEventListener("resize", () => {
+      if(ask.classList.contains("hidden")) return;
+      initButtons();
+    });
+
+    requestAnimationFrame(initButtons);
+  </script>
+</body>
+</html>
