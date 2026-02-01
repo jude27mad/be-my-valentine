@@ -112,7 +112,12 @@
       text-align:center;
       position:relative;
       z-index:1;
+      max-height: calc(100vh - 32px);
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
     }
+
     h1{ margin:0 0 10px; font-size:36px; color:var(--text); letter-spacing:-0.02em; }
     p{ margin:0 0 14px; color:#333; opacity:.9; }
 
@@ -170,7 +175,7 @@
     }
 
     #hint{
-      margin:34px auto 0;
+      margin:44px auto 0;
       width:min(580px,92vw);
       padding:10px 14px;
       border-radius:999px;
@@ -633,6 +638,7 @@
         if(caught >= target){
           gameOn = false;
           secret.style.display = "block";
+          secret.scrollIntoView({ behavior: "smooth", block: "center" });
         }else{
           spawnTapHeart();
         }
